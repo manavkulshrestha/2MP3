@@ -2,13 +2,13 @@ import spotipy
 import os
 import json
 import spotipy.util as util
-import pprint
 import time
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
 
 # PATH = os.path.dirname(__file__)
 spotify_token = None
-pp = pprint.PrettyPrinter(indent=4)
-
 
 def open_json_file(file_name):
 	with open(file_name, 'r') as file:
@@ -43,9 +43,10 @@ def get_spotify_playlist_songs(username, playlist_id):
 				'duration_ms': item['track']['duration_ms'],
 				'explicit': item['track']['explicit'],
 				'name': item['track']['name'],
+				'track_number': item['track']['track_number'],
 			}
 			songs.append(song)
-
+			
 		if results['next']:
 			results = sp.next(results)
 		else:
@@ -58,14 +59,12 @@ spotify_token = get_spotify_token(info)
 
 if spotify_token:
 	sp = spotipy.Spotify(auth=spotify_token)
-else:
-	sp = spotipy.Spotify()
 
 url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1'
+url = 'https://open.spotify.com/user/manavkoolz/playlist/38emfFLnZtfyOocIXX7AYG?si=MrSNWTTVQm-B4kXreOKefA'
 
 playlist = parse_spotify_playlist_url(url)
 playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
-
 pp.pprint(playlist)
 print(len(playlist))
 

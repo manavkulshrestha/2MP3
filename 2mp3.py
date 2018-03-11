@@ -3,18 +3,28 @@ import os
 import json
 import spotipy.util as util
 import pprint
+import time
 
+# PATH = os.path.dirname(__file__)
+spotify_token = None
 pp = pprint.PrettyPrinter(indent=4)
 
-with open(os.path.join(os.path.dirname(__file__), 'info.txt'), 'r') as file:
-	info = json.load(file)
 
-def get_spotify_token():
+def open_json_file(file_name):
+	with open(file_name, 'r') as file:
+		return json.load(file)
+
+def get_spotify_token(info):
 	try:
-		return util.prompt_for_user_token(info['username'], client_id=info['client_id'], client_secret=info['client_secret'], redirect_uri=info['redirect_uri'])
+		cache_file = f'.cache-{info["username"]}'
+		cache = open_json_file(cache_file)
+		if cache['expires_at'] < int(time.time()):
+			os.remove(cache_file)
+			get_spotify_token(info)
+		else:
+			return cache['access_token']
 	except:
-		os.remove(f'.cache-{info["username"]}')
-		return get_spotify_token()
+		return util.prompt_for_user_token(info['username'], client_id=info['client_id'], client_secret=info['client_secret'], redirect_uri=info['redirect_uri'])
 
 def parse_spotify_playlist_url(url):
 	user_start = url.find('/user/')+6
@@ -42,18 +52,20 @@ def get_spotify_playlist_songs(username, playlist_id):
 			break
 	return songs
 
-token = get_spotify_token()
 
-if token:
-	sp = spotipy.Spotify(auth=token)
+info = open_json_file('info.txt')
+spotify_token = get_spotify_token(info)
 
-url = 'https://open.spotify.com/user/manavkoolz/playlist/38emfFLnZtfyOocIXX7AYG';
-url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1';
-url = 'https://open.spotify.com/user/manavkoolz/playlist/38emfFLnZtfyOocIXX7AYG?si=DBMzLn7xTymkxe-sAeKqZg'
+if spotify_token:
+	sp = spotipy.Spotify(auth=spotify_token)
+else:
+	sp = spotipy.Spotify()
 
-playlist = parse_spotify_playlist_url(url);
+url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1'
+
+playlist = parse_spotify_playlist_url(url)
 playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
 
-pp.pprint(playlist);
+pp.pprint(playlist)
 print(len(playlist))
 

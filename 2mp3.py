@@ -12,7 +12,7 @@ import pprint
 pp = pprint.PrettyPrinter(indent=2)
 
 # PATH = os.path.dirname(__file__)
-spotify_token = None
+spotipy_token = None
 PATH = os.path.dirname(os.path.abspath(__file__))
 SONGS_PATH = f'{PATH}/songs/'
 PLACEHOLDER_FILE_NAME = 'song'
@@ -28,7 +28,7 @@ mp3 = {
 							'preferredquality': '320',
 		 }],
 		'extractaudio': 	True,
-		'outtmpl': 			f'{SONGS_PATH}{place}{PLACEHOLDER_FILE_NAME}.%(ext)s',#f'{SONGS_PATH}%(title)s.%(ext)s'
+		'outtmpl': 			f'{SONGS_PATH}{PLACEHOLDER_FILE_NAME}.%(ext)s',#f'{SONGS_PATH}%(title)s.%(ext)s'
 		'noplaylist': 		True,
 	}
 
@@ -40,18 +40,23 @@ def youtube_search(q):
 
 def download_image(image_url, file_name):
     request.urlretrieve(image_url, file_name)
+    return file_name
 
 def add_meta_data(name, song):
-	os.rename(f'{SONGS_PATH}{name}', f'{SONGS_PATH}{song["artists"][0]} - {song["title"]}{" (Explicit)" if song["explicit"] else ""}.mp3')
-	audiofile = eyed3.load(name)
+	audiofile = eyed3.load(f'{SONGS_PATH}{name}')
 	audiofile.tag.artist = song['artists'][0]
 	audiofile.tag.album = song['album']
 	audiofile.tag.album_artist = ', '.join(song['artists'])
 	audiofile.tag.title = song['title']
 	audiofile.tag.track_num = song['track_number']
-	# audiofile.tag.addImage()
 	audiofile.tag.play_count = 0
 	audiofile.tag.save()
+
+	file_path = download_image(song['image'], f'{SONGS_PATH}image.jpeg')
+	os.system(f'eyeD3 --add-image="{file_path}":FRONT_COVER "{SONGS_PATH}{name}"')
+	os.remove(file_path)
+
+	os.rename(f'{SONGS_PATH}{name}', f'{SONGS_PATH}{song["artists"][0].replace("/", ":")} - {song["title"].replace("/", ":")}{" (Explicit)" if song["explicit"] else ""}.mp3')
 
 def open_json_file(file_name):
 	with open(file_name, 'r') as file:
@@ -76,7 +81,7 @@ def parse_spotify_playlist_url(url):
 
 def get_spotify_image_url(images, priority_height, priority_width):
 	for image in images:
-		if image['height'] == priority_height and images['width'] == priority_width:
+		if image['height'] == priority_height and image['width'] == priority_width:
 			return image['url']
 	return images[0]['url']
 
@@ -90,7 +95,7 @@ def get_spotify_playlist_songs(username, playlist_id):
 		for item in results['items']:
 			song = {
 				'album': item['track']['album']['name'],
-				'image': get_spotify_image_url(item['track']['album']['images'], 300, 300),
+				'image': get_spotify_image_url(item['track']['album']['images'], 640, 640),
 				'artists': [artist['name'] for artist in item['track']['artists']],
 				# 'duration_ms': item['track']['duration_ms'],
 				'explicit': item['track']['explicit'],
@@ -107,28 +112,31 @@ def get_spotify_playlist_songs(username, playlist_id):
 
 
 info = open_json_file('info.txt')
-spotify_token = get_spotify_token(info)
+spotipy_token = get_spotify_token(info)
 
-if spotify_token:
-	sp = spotipy.Spotify(auth=spotify_token)
+if spotipy_token:
+	sp = spotipy.Spotify(auth=spotipy_token)
 else:
 	print(f'No token: {spotipy_token}')
 
 url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1'
 url = 'https://open.spotify.com/user/manavkoolz/playlist/38emfFLnZtfyOocIXX7AYG?si=MrSNWTTVQm-B4kXreOKefA'
+url = 'https://open.spotify.com/user/manavkoolz/playlist/6phpQlxkMunE7G18O9i1PJ?si=9iRKhuqySg6pRNX59vwang'
+url = 'https://open.spotify.com/user/manavkoolz/playlist/0ZwjOF55zsXtscRxPp8dEu?si=OIJnqxTATlij4uHcb6V91Q'
+url = 'https://open.spotify.com/user/manavkoolz/playlist/3CpKLdoaHo7CRLe5kovJ4U?si=nT0axrBVQPiQLkSnh1SnFw'
 
 playlist = parse_spotify_playlist_url(url)
 playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
 
-int i=1
+i=1
 
-with youtube_dl.YoutubeDL(mp3) as ytdl:
-	for song in playlist:
-		query = f'{' '.join(song["artists"])} {song["title"]}{" Dirty" if song["explicit"] else ""} HQ'
+for song in playlist:
+	with youtube_dl.YoutubeDL(mp3) as ytdl:
+		query = f'{" ".join(song["artists"])} {song["title"]}{" Dirty" if song["explicit"] else ""} HQ'
 		ytdl.download(youtube_search(query)[:1])
-		add_meta_data(f'{PLACEHOLDER_FILE_NAME}.mp3', song)
-		print(f'{i}. Download complete: {song["title"]}')
-		i += 1
+	add_meta_data(f'{PLACEHOLDER_FILE_NAME}.mp3', song)
+	print(f'{i}. Download complete: {song["title"]}')
+	i += 1
 
 pp.pprint(playlist)
 print(len(playlist))

@@ -119,11 +119,7 @@ if spotipy_token:
 else:
 	print(f'No token: {spotipy_token}')
 
-url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1'
-url = 'https://open.spotify.com/user/manavkoolz/playlist/38emfFLnZtfyOocIXX7AYG?si=MrSNWTTVQm-B4kXreOKefA'
-url = 'https://open.spotify.com/user/manavkoolz/playlist/6phpQlxkMunE7G18O9i1PJ?si=9iRKhuqySg6pRNX59vwang'
-url = 'https://open.spotify.com/user/manavkoolz/playlist/0ZwjOF55zsXtscRxPp8dEu?si=OIJnqxTATlij4uHcb6V91Q'
-url = 'https://open.spotify.com/user/manavkoolz/playlist/3CpKLdoaHo7CRLe5kovJ4U?si=nT0axrBVQPiQLkSnh1SnFw'
+url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1'#change this to the playlist url
 
 playlist = parse_spotify_playlist_url(url)
 playlist = get_spotify_playlist_songs(playlist[0], playlist[1])

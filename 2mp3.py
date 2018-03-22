@@ -11,12 +11,14 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=2)
 
-# PATH = os.path.dirname(__file__)
 spotipy_token = None
 PATH = os.path.dirname(os.path.abspath(__file__))
 SONGS_PATH = f'{PATH}/songs/'
 PLACEHOLDER_FILE_NAME = 'song'
 PLACEHOLDER_ART_NAME = 'album_art'
+
+with open(f'{PATH}/in.txt', 'r') as file:
+    urls = file.read().splitlines()
 
 mp3 = {
 		'verbose':			True,
@@ -119,21 +121,20 @@ if spotipy_token:
 else:
 	print(f'No token: {spotipy_token}')
 
-url = 'https://open.spotify.com/user/kieron/playlist/5Rrf7mqN8uus2AaQQQNdc1'#change this to the playlist url
+for url in urls:
+	playlist = parse_spotify_playlist_url(url)
+	playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
 
-playlist = parse_spotify_playlist_url(url)
-playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
+	i=1
 
-i=1
+	for song in playlist:
+		with youtube_dl.YoutubeDL(mp3) as ytdl:
+			query = f'{" ".join(song["artists"])} {song["title"]}{" Dirty" if song["explicit"] else ""} HQ'
+			ytdl.download(youtube_search(query)[:1])
+		add_meta_data(f'{PLACEHOLDER_FILE_NAME}.mp3', song)
+		print(f'{i}. Download complete: {song["title"]}')
+		i += 1
 
-for song in playlist:
-	with youtube_dl.YoutubeDL(mp3) as ytdl:
-		query = f'{" ".join(song["artists"])} {song["title"]}{" Dirty" if song["explicit"] else ""} HQ'
-		ytdl.download(youtube_search(query)[:1])
-	add_meta_data(f'{PLACEHOLDER_FILE_NAME}.mp3', song)
-	print(f'{i}. Download complete: {song["title"]}')
-	i += 1
-
-pp.pprint(playlist)
-print(len(playlist))
+	pp.pprint(playlist)
+	print(len(playlist))
 

@@ -1,5 +1,31 @@
-https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX0XUsuxWHRQd
-https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX4wV42rNlId4
-https://open.spotify.com/user/spotify/playlist/37i9dQZF1DWVzZlRWgqAGH
-https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX4JAvHpjipBk
-https://open.spotify.com/user/spotify/playlist/37i9dQZF1DWY4xHQp97fN6
+/*
+	This is a multiline comment like in C, Java, etc. Tabs are not necessary, but look nice.
+*/
+# Single line comments are also allowed, but are in python style so they don't mess with urls.
+
+
+# Comments are removed once the file is read using simple regex replace.
+# Don't try weird nested comment edge cases, thanks.
+
+# But if you're having a legitimate issue due to the way tagging or commenting is interpretted, open an issue
+
+/*
+	#Example for the file:
+	https://open.spotify.com/user/spotify/playlist/37i9dQZF1DWY4xHQp97fN6		# downloads songs in the playlist through YouTube searches
+	https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX0XUsuxWHRQd		# will be processed, not commented out
+	# https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX4wV42rNlId4		# won't be processed, commented out
+	/*https://open.spotify.com/user/spotify/playlist/37i9dQZF1DWVzZlRWgqAGH*/	# won't be processed, commented out
+	[Y]Baby by Justin Bieber 													# Does a direct YouTube query search, downloads the first result
+	[S]Baby Justin Bieber 														# Does a spotify search, downloads the first result through YouTube
+	https://www.youtube.com/watch?v=hGKL3_pr2MY 								# downloads through YouTube
+*/
+
+# 5 Playlists
+# https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX0XUsuxWHRQd
+# https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX4wV42rNlId4
+# https://open.spotify.com/user/spotify/playlist/37i9dQZF1DWVzZlRWgqAGH
+# https://open.spotify.com/user/spotify/playlist/37i9dQZF1DX4JAvHpjipBk
+# https://open.spotify.com/user/spotify/playlist/37i9dQZF1DWY4xHQp97fN6
+
+#New Playlist
+https://open.spotify.com/user/manavkoolz/playlist/1SvsBX9S1con4UWCGjR2xl?si=50oOBum5Tf6y_35O3yqpXQ

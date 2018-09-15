@@ -8,6 +8,7 @@ from urllib import parse, request
 from re import findall
 import eyed3
 import pprint
+import re
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -16,9 +17,7 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 SONGS_PATH = f'{PATH}/songs/'
 PLACEHOLDER_FILE_NAME = 'song'
 PLACEHOLDER_ART_NAME = 'album_art'
-
-with open(f'{PATH}/in.txt', 'r') as file:
-    urls = file.read().splitlines()
+COMMENT_FLAGS = ['//', '#']
 
 mp3 = {
 		'verbose':			True,
@@ -93,7 +92,6 @@ def get_spotify_playlist_songs(username, playlist_id):
 	if 'external_urls' in results:
 		results = results['tracks']
 	while True:
-		pp.pprint(results)
 		for item in results['items']:
 			song = {
 				'album': item['track']['album']['name'],
@@ -112,6 +110,19 @@ def get_spotify_playlist_songs(username, playlist_id):
 			break
 	return songs
 
+def handle_input(input):
+	if 'http' not in input:
+		return (input, False)
+	elif 'watch?' in input:
+		return (input, False)
+	elif '/open.spotify.com/user/' in input:
+		return (input, True)
+	return input
+
+
+with open(f'{PATH}/in.txt', 'r') as file:
+    urls = [handle_input(line) for line in re.sub(r'(#)(.*)', '', re.sub(r'\/\*([\s\S]*?)\*\/', '', file.read())).split('\n')]
+
 
 info = open_json_file('info.txt')
 spotipy_token = get_spotify_token(info)
@@ -121,20 +132,18 @@ if spotipy_token:
 else:
 	print(f'No token: {spotipy_token}')
 
+i=1
+
 for url in urls:
-	playlist = parse_spotify_playlist_url(url)
-	playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
+	if url[1]:
+		playlist = parse_spotify_playlist_url(url[0])
+		playlist = get_spotify_playlist_songs(playlist[0], playlist[1])
 
-	i=1
-
-	for song in playlist:
-		with youtube_dl.YoutubeDL(mp3) as ytdl:
-			query = f'{" ".join(song["artists"])} {song["title"]}{" Dirty" if song["explicit"] else ""} HQ'
-			ytdl.download(youtube_search(query)[:1])
-		add_meta_data(f'{PLACEHOLDER_FILE_NAME}.mp3', song)
-		print(f'{i}. Download complete: {song["title"]}')
-		i += 1
-
-	pp.pprint(playlist)
-	print(len(playlist))
+		for song in playlist:
+			with youtube_dl.YoutubeDL(mp3) as ytdl:
+				query = f'{" ".join(song["artists"])} {song["title"]}{" Dirty" if song["explicit"] else ""} HQ'
+				ytdl.download(youtube_search(query)[:1])
+			add_meta_data(f'{PLACEHOLDER_FILE_NAME}.mp3', song)
+			print(f'{i}. Download complete: {song["title"]}')
+			i += 1
 
